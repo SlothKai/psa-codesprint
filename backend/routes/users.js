@@ -32,7 +32,7 @@ router.post("/add", async function (req, res, next) {
       .collection("Counter")
       .doc("userCounter");
     const counterDoc = await counterRef.get();
-    let counter = counterDoc.exists ? counterDoc.data().value : 0;
+    let counter = counterDoc.exists ? counterDoc.data().value : 1;
     const documentId = counter.toString();
 
     data.id = documentId;

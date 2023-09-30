@@ -37,6 +37,8 @@ router.post("/add", async function (req, res, next) {
     let counter = counterDoc.exists ? counterDoc.data().value : 0;
     const documentId = counter.toString();
 
+    data.id = documentId;
+
     //Set Id for new document
     const collectionRef = firebase.firestore().collection("Employees");
     const documentRef = collectionRef.doc(documentId);

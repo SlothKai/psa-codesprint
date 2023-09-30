@@ -12,9 +12,7 @@ router.get("/", async function (req, res, next) {
     const users = [];
     snapshot.forEach((doc) => {
       const data = doc.data();
-      const userID = doc.id;
-      const user = { id: userID, ...data };
-      users.push(user);
+      users.push(data);
     });
     res.send(users);
   } catch (error) {
@@ -34,8 +32,11 @@ router.post("/add", async function (req, res, next) {
       .collection("Counter")
       .doc("userCounter");
     const counterDoc = await counterRef.get();
-    let counter = counterDoc.exists ? counterDoc.data().value : 0;
+    let counter = counterDoc.exists ? counterDoc.data().value : 1;
     const documentId = counter.toString();
+
+    data.id = documentId;
+    data.leavesLeft = 0;
 
     //Set Id for new document
     const collectionRef = firebase.firestore().collection("Employees");

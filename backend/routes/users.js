@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var User = require('../config');
+var User = require('../firebase_config');
 
 const firebase = require('firebase/compat/app');
 require('firebase/compat/firestore');

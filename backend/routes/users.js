@@ -1,12 +1,14 @@
 var express = require("express");
+var express = require("express");
 var router = express.Router();
+var User = require("../firebase_config");
 var User = require("../firebase_config");
 
 const firebase = require("firebase/compat/app");
 require("firebase/compat/firestore");
 
 //get all user
-const getAllUsers = async (req, res, next) => {
+router.get("/", async function (req, res, next) {
   try {
     const snapshot = await User.get();
     const users = [];
@@ -21,9 +23,7 @@ const getAllUsers = async (req, res, next) => {
     console.error(error);
     res.status(500).send(error);
   }
-};
-
-router.get("/", getAllUsers);
+});
 
 //Add user..?
 router.post("/add", async function (req, res, next) {
@@ -80,4 +80,3 @@ router.post("/delete", async function (req, res, next) {
 });
 
 module.exports = router;
-module.exports = getAllUsers;

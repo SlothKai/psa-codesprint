@@ -2,6 +2,7 @@ const axios = require("axios");
 const express = require("express");
 const router = express.Router();
 const OpenAI = require("openai");
+const { getAllUsers } = require("./users");
 
 const openai = new OpenAI({
   apiKey: "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",
@@ -31,9 +32,10 @@ router.post("/", async function (req, res, next) {
   const get_employee_details = async (search_term) => {
     try {
       //Get employee all Employee Details
-      const response = await fetch("http://localhost:3000/users");
-      const user_list = await response.json();
+      // const response = await fetch("http://localhost:3001/users");
+      // const user_list = await response.json();
 
+      const user_list = getAllUsers;
       const employee_details = user_list.filter((user) => {
         const nameMatch = user.Name.toLowerCase() === search_term.toLowerCase();
         const idMatch =

@@ -126,6 +126,29 @@ const PromptTest = () => {
     },
   ];
 
+  interface GPTMessageType {
+    role: string;
+    content: string;
+    name?: string;
+  }
+
+  const askGPT = async (messageToSend: any[]) => {
+    console.log("~~~ ASK GPT");
+    let response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo-0613",
+      messages: messageToSend,
+      functions: functions,
+      function_call: "auto",
+      temperature: 0.2,
+    });
+
+    return response;
+  };
+
+  interface ExecutedFunctionsType {
+    [key: string]: boolean;
+  }
+
   const promptTest = async (input: string) => {
     console.log("button clicked");
     console.log(input);
@@ -140,62 +163,59 @@ const PromptTest = () => {
     console.log("generating");
     try {
       console.log("first response");
-      let response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo-0613",
-        messages: messagesToSend,
-        functions: functions,
-        function_call: "auto",
-      });
-      console.log("firstResponse data: ", response);
-      if (response.choices[0].message.function_call) {
-        const functionCall = response.choices[0].message.function_call;
+      let response = await askGPT(messagesToSend);
 
-        try {
-          const functionArgs = JSON.parse(functionCall.arguments);
-          const functionResponse = await get_employee_details(
-            functionArgs.search_term
-          );
-          console.log("employeeDetails");
-          console.log(functionResponse);
-          const functionCallMessage = {
-            role: "function",
-            name: functionCall.name,
-            content: functionResponse,
-          };
-          messagesToSend.push(functionCallMessage);
-          console.log("messagesToSendsss");
-          console.log(messagesToSend);
+      let executedFunctions: ExecutedFunctionsType = {};
 
-          let response2 = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo-0613",
-            messages: messagesToSend,
-            //   messages: [
-            //     { role: "system", content: systemPrompt },
-            //     { role: "user", content: input },
-            //   ],
-            functions: functions,
-            function_call: "auto",
-          });
+      while (
+        response.choices[0].message.function_call &&
+        response.choices[0].finish_reason !== "stop"
+      ) {
+        console.log("function call");
+        let message = response.choices[0].message;
 
-          console.log("response2");
-          console.log(response2);
-          setOutput(response2.choices[0].message.content);
-        } catch (e) {
-          console.log("error found");
-          console.log(e);
+        if (!message || !message.function_call) {
+          return;
         }
-      } else {
-        setOutput(response.choices[0].message.content);
+        const function_name = message.function_call.name;
+        console.log("function name: ", function_name);
+
+        if (executedFunctions[function_name]) {
+          console.log("EXECUTED BEFORE!!: ", function_name);
+          break;
+        }
+
+        let function_response = "";
+        switch (function_name) {
+          case "get_employee_details":
+            const functionArgs = JSON.parse(message.function_call.arguments);
+            function_response = await get_employee_details(
+              functionArgs.search_term
+            );
+            break;
+        }
+
+        executedFunctions[function_name] = true;
+        console.log("EXECUTED FUNCTION DONE!!: ", function_name);
+
+        messagesToSend.push({
+          role: "function",
+          name: function_name,
+          content: function_response,
+        });
+
+        response = await askGPT(messagesToSend);
       }
+      console.log("CALLING ALOT");
+      console.log("MessagesList: ", messagesToSend);
+      // response = await askGPT(messagesToSend);
+
+      setOutput(response.choices[0].message.content);
+      return response;
     } catch (e) {
       console.log("unexpected error: ", e);
     }
   };
-
-  // if (chatTest) {
-  //   setOutput(chatTest.choices[0].message.content);
-  // }
-  // console.log(chatTest);
 
   return (
     <main>

@@ -18,7 +18,8 @@ interface PageConfigProps {
 const PageConfig: React.FC<PageConfigProps> = ({ children }) => {
   return (
     <div className="h-screen pb-52 ">
-      <div className="px-4 max-w-4xl md:px-8 lg:px-16 mx-auto flex flex-col gap-5 md:gap-10 divide-y divide-blue-bg">
+      <div className="px-4 max-w-7xl md:px-8 mx-auto flex flex-col gap-5 md:gap-10 divide-y divide-blue-bg">
+        {/* <div className="px-4 max-w-4xl md:px-8 lg:px-16 mx-auto flex flex-col gap-5 md:gap-10 divide-y divide-blue-bg"> */}
         {children}
       </div>
     </div>

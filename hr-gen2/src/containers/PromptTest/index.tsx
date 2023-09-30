@@ -107,6 +107,10 @@ const PromptTest = () => {
     });
   };
 
+  const get_current_temperature = () => {
+    return "The current temperature is 30 degrees celsius.";
+  };
+
   const functions: any = [
     {
       name: "get_employee_details",
@@ -121,20 +125,23 @@ const PromptTest = () => {
               "The attribute of the user, it can be the user's name or employee ID",
           },
         },
-        required: ["employee_id"],
+        required: ["search_term"],
+      },
+    },
+    {
+      name: "get_current_temperature",
+      description: "Get the real-time temperature of the office.",
+      parameters: {
+        type: "object",
+        properties: {},
       },
     },
   ];
 
-  interface GPTMessageType {
-    role: string;
-    content: string;
-    name?: string;
-  }
-
   const askGPT = async (messageToSend: any[]) => {
     console.log("~~~ ASK GPT");
     let response = await openai.chat.completions.create({
+      // model: "gpt-4",
       model: "gpt-3.5-turbo-0613",
       messages: messageToSend,
       functions: functions,
@@ -160,6 +167,7 @@ const PromptTest = () => {
     if (!input) {
       return;
     }
+    console.log(messagesToSend);
     console.log("generating");
     try {
       console.log("first response");
@@ -186,12 +194,17 @@ const PromptTest = () => {
         }
 
         let function_response = "";
+        let functionArgs;
         switch (function_name) {
           case "get_employee_details":
-            const functionArgs = JSON.parse(message.function_call.arguments);
+            functionArgs = JSON.parse(message.function_call.arguments);
             function_response = await get_employee_details(
               functionArgs.search_term
             );
+            break;
+          case "get_current_temperature":
+            functionArgs = JSON.parse(message.function_call.arguments);
+            function_response = await get_current_temperature();
             break;
         }
 
@@ -205,6 +218,8 @@ const PromptTest = () => {
         });
 
         response = await askGPT(messagesToSend);
+        console.log("response: ");
+        console.log(response);
       }
       console.log("CALLING ALOT");
       console.log("MessagesList: ", messagesToSend);

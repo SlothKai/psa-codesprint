@@ -35,9 +35,8 @@ router.post("/", async function (req, res, next) {
       const response = await fetch("http://localhost:3001/users");
       const user_list = await response.json();
       const employee_details = user_list.filter((user) => {
-        const nameMatch = user.Name.toLowerCase() === search_term.toLowerCase();
-        const idMatch =
-          user.Employee_ID.toLowerCase() === search_term.toLowerCase();
+        const nameMatch = user.name.toLowerCase() === search_term.toLowerCase();
+        const idMatch = user.id.toLowerCase() === search_term.toLowerCase();
         return nameMatch || idMatch;
       });
 

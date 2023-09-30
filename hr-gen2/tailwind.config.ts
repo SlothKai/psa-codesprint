@@ -19,6 +19,6 @@ const config: Config = {
     },
   },
   plugins: [nextui()],
-  // darkMode: "class",
+  darkMode: "class",
 };
 export default config;

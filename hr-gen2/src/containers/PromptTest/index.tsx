@@ -138,12 +138,6 @@ const PromptTest = () => {
     },
   ];
 
-  interface GPTMessageType {
-    role: string;
-    content: string;
-    name?: string;
-  }
-
   const askGPT = async (messageToSend: any[]) => {
     console.log("~~~ ASK GPT");
     let response = await openai.chat.completions.create({
@@ -173,6 +167,7 @@ const PromptTest = () => {
     if (!input) {
       return;
     }
+    console.log(messagesToSend);
     console.log("generating");
     try {
       console.log("first response");

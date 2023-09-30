@@ -117,6 +117,7 @@ const Home = () => {
               </TableColumn>
             )}
           </TableHeader>
+
           <TableBody items={users}>
             {(item) => (
               <TableRow key={item.id}>

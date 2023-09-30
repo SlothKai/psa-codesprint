@@ -12,9 +12,7 @@ router.get("/", async function (req, res, next) {
     const users = [];
     snapshot.forEach((doc) => {
       const data = doc.data();
-      const userID = doc.id;
-      const user = { id: userID, ...data };
-      users.push(user);
+      users.push(data);
     });
     res.send(users);
   } catch (error) {

@@ -18,7 +18,7 @@ var app = express();
 app.use(logger("dev"));
 app.use(
   cors({
-    origin: "http://192.168.10.114:3000",
+    origin: "http://localhost:3000",
   })
 );
 app.use(express.json());

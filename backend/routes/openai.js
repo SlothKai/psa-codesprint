@@ -44,11 +44,11 @@ router.post("/", async function (req, res, next) {
         const deArray = employee_details[0];
         return JSON.stringify(deArray);
       } else {
-        return { msg: "Employee not found" };
+        return JSON.stringify({ msg: "Employee not found" });
       }
     } catch (error) {
       console.log("Error: " + error);
-      return { error: "Error fetching user list" };
+      return JSON.stringify({ error: "Error fetching user list" });
     }
   };
 
@@ -56,8 +56,19 @@ router.post("/", async function (req, res, next) {
   const functions = [
     {
       name: "get_employee_details",
-      description:
-        "Get the real-time data and details of a person, given their name or employee id. If the user is not found, return an error message.",
+      description: `Get the real-time data and details of a person, given their name or employee id. It will return the following attributes: 
+        id: The employee's unique ID,
+        name: The employee's name,
+        role: The employee's position and role in the company,
+        department: The employee's allocated department,
+        skillset: The employee's known and current skillsets,
+        leavesTotal: The employee's total number of leaves,
+        leavesLeft: The employee's remaining number of leaves,
+        avatar: The employee's picture, you do not need to display this,
+        email: The employee's company email address,
+      },
+
+        If the user is not found, return an error message.`,
       parameters: {
         type: "object",
         properties: {

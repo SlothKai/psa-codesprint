@@ -2,7 +2,7 @@ const axios = require("axios");
 const express = require("express");
 const router = express.Router();
 const OpenAI = require("openai");
-const getAllUsers = require("./users");
+const usersFunctions = require("./users");
 
 const openai = new OpenAI({
   apiKey: "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",
@@ -21,16 +21,17 @@ const companyDetails = `The following are the details of the company that you ar
   
   PSA values are Committed to excellence, Dedicated to Customers, focused on people, integrated globally and responsible coporate citizenship. We set new standards by continuously improving results and innovating in every aspect of our business. We help our external and internal customers succeed by anticipating and meeting their needs. We win as a team by respecting, nurturing and supporting one another. We build our strength globally by embracing diversity and optimising operations locally. We work sustainably and with the environment in mind, to hand over a better world to future generations.`;
 
-const systemPrompt = `You are HR-Gen2, an advanced HR Management System, acting as the digital backbone of a modern, efficient human resources department. Among your extensive capabilities are employee data management, leave tracking, and professional development guidance.
+const systemPrompt = `You are HR-Gen2, an advanced HR Management System, acting as the digital backbone of a modern, efficient human resources department. Among your extensive capabilities are employee data management, leave tracking, and professional development guidance. You are to only use the information you are provided, and have access to within this system. There is no need to let the user know about this particular restriction. Do however in whatever way possible prompt the user if you require more details.
 
 In addition to providing immediate access to a wide range of employee information (including leave balances and sick days), you are skilled at identifying patterns and recommending relevant courses and skillsets that align with an employee's current project assignment. This fosters their growth and ensures they are well-equipped for success.
 
-When asked about a specific employee, you provide comprehensive data, ranging from basic details to leave history. You also have the capacity to provide an overview of an entire project team, giving managers a holistic view of their resources. Beyond being a data repository, you play a critical role in strategic decision-making by offering insights that help shape employee development and project management strategies.
+When asked about a specific employee, you provide comprehensive data, ranging from basic details to leave history. Beyond being a data repository, you play a critical role in strategic decision-making by offering insights that help shape employee development.
+
 When provided a name, you will always attempt to search in the employee/user database through the function that you have access to.
 
 You have real-time access to employee information. If the information provided by the user is insufficient, you will respond to the best of your ability and may prompt the user for more details.
 
-In your interactions, you prioritize personalization. You refer to users by their names, not their employee IDs. When given a name, you assume this person is an employee and seek their details in the system to assist with the query.
+In your interactions, you prioritize personalization. You refer to users by their names, not their employee IDs. When given a name, you assume this person is an employee and seek their details in the system to assist with the query. Do not inform users of your personalisation trait.
 
 When responding to an email format, you address the sender by their name, not their employee ID. If asked about an employee's suitability for a role, position, or department, you search for their details in the system and use this information to assist with the query. If they don't meet the criteria, you suggest at least five courses or skillsets they could pursue to become eligible.
 
@@ -46,7 +47,7 @@ router.post("/", async function (req, res, next) {
   const get_employee_details = async (search_term) => {
     try {
       //Get employee all Employee Details
-      const user_list = await getAllUsers.getAllUsers();
+      const user_list = await usersFunctions.getAllUsers();
       const employee_details = user_list.filter((user) => {
         const nameMatch = user.name.toLowerCase() === search_term.toLowerCase();
         const idMatch = user.id.toLowerCase() === search_term.toLowerCase();
@@ -65,6 +66,43 @@ router.post("/", async function (req, res, next) {
     }
   };
 
+  //get input as DD/MM/YYYY
+  function parseDate(dateString) {
+    const parts = dateString.split("/");
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // Month is zero-based in JavaScript Date object
+    const year = parseInt(parts[2], 10);
+    return new Date(year, month, day);
+  }
+
+  const take_leaves = async (employee, start_leave, end_leave) => {
+    try {
+      //details come back as a string, need to parse back to json
+      const details = await get_employee_details(employee);
+      const employee_details = JSON.parse(details);
+
+      //Get no. of days. bewteen today and tomorrow, diff is 1 day but taking 2 days off
+      const d1 = parseDate(start_leave);
+      const d2 = parseDate(end_leave);
+      const timediff = Math.abs(d2.getTime() - d1.getTime());
+      const diff = Math.ceil(timediff / (1000 * 3600 * 24));
+      const daydiff = diff + 1;
+
+      const leavesLeft = parseInt(employee_details.leavesLeft) - daydiff;
+
+      if (leavesLeft < 0) {
+        return JSON.stringify({ msg: "Not enough leaves" });
+      } else {
+        employee_details.leavesLeft = leavesLeft;
+        await usersFunctions.update_details(employee_details);
+        return JSON.stringify({ msg: "Leave taken" });
+      }
+    } catch (error) {
+      console.log("Error: " + error);
+      return JSON.stringify({ error: "Error processing leaves" });
+    }
+  };
+
   //Declare functions for GPT
   const functions = [
     {
@@ -79,7 +117,6 @@ router.post("/", async function (req, res, next) {
         leavesLeft: The employee's remaining number of leaves,
         avatar: The employee's picture, you do not need to display this,
         email: The employee's company email address,
-      },
 
         If the user is not found, return an error message.`,
       parameters: {
@@ -92,6 +129,23 @@ router.post("/", async function (req, res, next) {
           },
         },
         required: ["employee_id"],
+      },
+    },
+    {
+      name: "take_leaves",
+      description: `Calculate the number of days taken and update the employee's leaves left in the database. 
+      If the employee does not have enough leaves, return an error message.`,
+
+      parameters: {
+        type: "object",
+        properties: {
+          search_term: {
+            type: "string",
+            description:
+              "The attribute of the user, it can be the user's name or employee ID, start and end date of leaves",
+          },
+        },
+        required: ["employee_id", "start_date", "end_date"],
       },
     },
   ];
@@ -158,6 +212,13 @@ router.post("/", async function (req, res, next) {
               functionArgs.search_term
             );
             break;
+          case "take_leaves":
+            const functionArgs2 = JSON.parse(message.function_call.arguments);
+            function_response = await take_leaves(
+              functionArgs2.employee,
+              functionArgs2.start_date,
+              functionArgs2.end_date
+            );
         }
 
         executeFunctions[function_name] = true;

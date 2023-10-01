@@ -13,7 +13,7 @@ const getAllUsers = async () => {
       const data = doc.data();
       users.push(data);
     });
-    return users;
+    return users.sort((a, b) => a.id - b.id);
   } catch (error) {
     console.error(error);
     return JSON.stringify({ error: "Failed to get users" });
@@ -41,7 +41,7 @@ router.post("/add", async function (req, res, next) {
     const documentId = counter.toString();
 
     data.id = documentId;
-    data.leavesLeft = 0;
+    data.leavesLeft = data.leavesTotal;
 
     //Set Id for new document
     const collectionRef = firebase.firestore().collection("Employees");
@@ -52,22 +52,29 @@ router.post("/add", async function (req, res, next) {
     counter++;
     await counterRef.set({ value: counter });
 
-    res.send({ msg: "Added User." });
+    res.status(200).send({ msg: "Added User." });
   } catch (error) {
     console.error("Error creating document:", error);
     res.status(500).send({ error: "Failed to create document" });
   }
 });
 
-router.post("/update", async function (req, res, next) {
+const update_details = async (data) => {
   try {
-    const id = req.body.id;
-    delete req.body.id;
-    const data = req.body;
+    const id = data.id;
+    delete data.id;
     await User.doc(id).update(data);
-    res.send({ msg: "Updated User Details." });
+    return { success: true };
   } catch (error) {
-    console.error("Error updating document:", error);
+    return { success: false };
+  }
+};
+
+router.post("/update", async function (req, res, next) {
+  const status = await update_details(req.body);
+  if (status.success) {
+    res.status(200).send({ msg: "Updated User Details." });
+  } else {
     res.status(500).send({ error: "Failed to update document" });
   }
 });
@@ -76,7 +83,7 @@ router.post("/delete", async function (req, res, next) {
   try {
     const id = req.body.id;
     await User.doc(id).delete();
-    res.send({ msg: "Deleted User." });
+    res.status(200).send({ msg: "Deleted User." });
   } catch (error) {
     console.error("Error deleting document:", error);
     res.status(500).send({ error: "Failed to delete document" });
@@ -86,4 +93,5 @@ router.post("/delete", async function (req, res, next) {
 module.exports = {
   router: router,
   getAllUsers: getAllUsers,
+  update_details: update_details,
 };

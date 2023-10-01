@@ -26,11 +26,8 @@ router.get("/", async function (req, res, next) {
   res.send(data);
 });
 
-//Add user..?
-router.post("/add", async function (req, res, next) {
+const add_employee = async (data) => {
   try {
-    const data = req.body;
-
     //Get current counter value
     const counterRef = firebase
       .firestore()
@@ -52,10 +49,18 @@ router.post("/add", async function (req, res, next) {
     counter++;
     await counterRef.set({ value: counter });
 
-    res.status(200).send({ msg: "Added User." });
+    return { success: true };
   } catch (error) {
-    console.error("Error creating document:", error);
-    res.status(500).send({ error: "Failed to create document" });
+    return { success: false };
+  }
+};
+
+router.post("/add", async function (req, res, next) {
+  const status = await add_employee(req.body);
+  if (status.success) {
+    res.status(200).send({ msg: "Added User." });
+  } else {
+    res.status(500).send({ error: "Failed to add document" });
   }
 });
 
@@ -102,4 +107,5 @@ module.exports = {
   getAllUsers: getAllUsers,
   update_details: update_details,
   delete_employee: delete_employee,
+  add_employee: add_employee,
 };

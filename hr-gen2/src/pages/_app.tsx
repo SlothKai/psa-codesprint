@@ -29,37 +29,22 @@ const PageConfig: React.FC<PageConfigProps> = ({ children }) => {
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <NextUIProvider>
-      <Navbar className="mb-10">
+      <Navbar className="mb-10" maxWidth="xl">
         <NavbarBrand>
           {/* <AcmeLogo /> */}
-          <p className="font-bold text-inherit">Human Resources</p>
+          <span className="font-bold text-inherit mr-2">Human Resources</span>
+          <span>// CMS</span>
         </NavbarBrand>
-        <NavbarContent className="hidden sm:flex gap-4" justify="center">
-          <NavbarItem>
-            <Link color="foreground" href="#">
-              Features
-            </Link>
-          </NavbarItem>
-          <NavbarItem isActive>
-            <Link href="#" aria-current="page">
-              Customers
-            </Link>
-          </NavbarItem>
-          <NavbarItem>
-            <Link color="foreground" href="#">
-              Integrations
-            </Link>
-          </NavbarItem>
-        </NavbarContent>
+
         <NavbarContent justify="end">
-          <NavbarItem className="hidden lg:flex">
+          {/* <NavbarItem className="hidden lg:flex">
             <Link href="#">Login</Link>
           </NavbarItem>
           <NavbarItem>
             <Button as={Link} color="primary" href="#" variant="flat">
               Sign Up
             </Button>
-          </NavbarItem>
+          </NavbarItem> */}
         </NavbarContent>
       </Navbar>
       <Toaster containerStyle={{ top: "80px" }} />

@@ -91,11 +91,15 @@ router.post("/", async function (req, res, next) {
       const leavesLeft = employee_details.leavesLeft - daydiff;
 
       if (leavesLeft < 0) {
-        return JSON.stringify({ msg: `Not enough leaves. You need ${daydiff} but only have ${employee_details.leavesLeft}` });
+        return JSON.stringify({
+          msg: `Not enough leaves. You need ${daydiff} but only have ${employee_details.leavesLeft}`,
+        });
       } else {
         employee_details.leavesLeft = leavesLeft;
         await usersFunctions.update_details(employee_details);
-        return JSON.stringify({ msg: `Leave application is successful. ${employee_details.name} has ${employee_details.leavesLeft} leaves left.}`});
+        return JSON.stringify({
+          msg: `Leave application is successful. ${employee_details.name} has ${employee_details.leavesLeft} leaves left.}`,
+        });
       }
     } catch (error) {
       console.log("Error: " + error);
@@ -106,16 +110,46 @@ router.post("/", async function (req, res, next) {
   const delete_employee = async (employee) => {
     try {
       const status = await usersFunctions.delete_employee(employee);
-      if(status.success == "true"){
+      if (status.success === "true") {
         return JSON.stringify({ msg: `Employee ${employee} has been deleted` });
-      } else{
+      } else {
         return JSON.stringify({ msg: `Employee ${employee} not found` });
       }
     } catch (error) {
       console.log("Error: " + error);
       return JSON.stringify({ error: "Error deleting employee" });
     }
-  }
+  };
+
+  const add_employee = async (
+    name,
+    role,
+    department,
+    skillset,
+    leavesTotal,
+    avatar,
+    email
+  ) => {
+    const employeeObject = {
+      name: name,
+      role: role,
+      department: department,
+      skillset: skillset,
+      leavesTotal: leavesTotal,
+      avatar: avatar,
+      email: email,
+    };
+    const status = await usersFunctions.add_employee(employeeObject);
+    if (status.success) {
+      return JSON.stringify({
+        msg: `Employee ${employeeObject.name} has been added`,
+      });
+    } else {
+      return JSON.stringify({
+        msg: `Employee ${employeeObject.name} not added`,
+      });
+    }
+  };
 
   //Declare functions for GPT
   const functions = [
@@ -187,6 +221,53 @@ router.post("/", async function (req, res, next) {
         required: ["employee"],
       },
     },
+    {
+      name: "add_employee",
+      description: `Adds employee details. If employee is not added, return an error message.
+        `,
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "Name of Employee",
+          },
+          role: {
+            type: "string",
+            description: "Role of Employee",
+          },
+          department: {
+            type: "string",
+            description: "Department of Employee",
+          },
+          skillset: {
+            type: "string",
+            description: "Skillset of employee",
+          },
+          leavesTotal: {
+            type: "string",
+            description: "Leaves in total the employee has",
+          },
+          avatar: {
+            type: "string",
+            description: "Avatar of employee",
+          },
+          email: {
+            type: "string",
+            description: "Email of employee",
+          },
+        },
+        required: [
+          "name",
+          "role",
+          "department",
+          "skillset",
+          "leavesTotal",
+          "avatar",
+          "email",
+        ],
+      },
+    },
   ];
 
   //Message object type
@@ -221,7 +302,6 @@ router.post("/", async function (req, res, next) {
     }
 
     try {
-
       let response = await askGPT(messageToSend);
       let executeFunctions = {};
 
@@ -237,12 +317,12 @@ router.post("/", async function (req, res, next) {
         }
 
         const function_name = message.function_call.name;
-        console.log("function name: ", function_name)
+        console.log("function name: ", function_name);
 
-        if (executeFunctions[function_name]) {
-          console.log("EXECUTED BEFORE!!: ", function_name);
-          break;
-        }
+        // if (executeFunctions[function_name]) {
+        //   console.log("EXECUTED BEFORE!!: ", function_name);
+        //   break;
+        // }
 
         //Execute functions - depending on function name.
         let function_response = "";
@@ -263,8 +343,19 @@ router.post("/", async function (req, res, next) {
             break;
           case "delete_employee":
             const functionArgs3 = JSON.parse(message.function_call.arguments);
-            function_response = await delete_employee(
-              functionArgs3.employee
+            function_response = await delete_employee(functionArgs3.employee);
+            break;
+          case "add_employee":
+            const functionArgs4 = JSON.parse(message.function_call.arguments);
+
+            function_response = await add_employee(
+              functionArgs4.name,
+              functionArgs4.role,
+              functionArgs4.department,
+              functionArgs4.skillset,
+              functionArgs4.leavesTotal,
+              functionArgs4.avatar,
+              functionArgs4.email
             );
             break;
         }
@@ -282,14 +373,24 @@ router.post("/", async function (req, res, next) {
 
       return response;
     } catch (e) {
+      return JSON.stringify({ error: "Error processing request" });
       console.log("unexpected error: ", e);
     }
   };
 
   //Main body of the route, everything before is function and such
-  const data = req.body.message;
-  const gptFinalResponse = await promptGPT(data);
-  res.send({ response: gptFinalResponse.choices[0].message.content });
+  try {
+    const data = req.body.message;
+    const gptFinalResponse = await promptGPT(data);
+    res
+      .status(200)
+      .send({ response: gptFinalResponse.choices[0].message.content });
+  } catch (error) {
+    res.status(400).send({ response: "Error processing request" });
+  }
+  //const data = req.body.message;
+  //const gptFinalResponse = await promptGPT(data);
+  //res.send({ response: gptFinalResponse.choices[0].message.content });
 });
 
 module.exports = router;

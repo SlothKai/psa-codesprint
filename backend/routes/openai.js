@@ -281,7 +281,7 @@ router.post("/", async function (req, res, next) {
   const askGPT = async (messageToSend) => {
     let response = await openai.chat.completions.create({
       //gpt-3.5-turbo-0613
-      model: "gpt-3.5-turbo",
+      model: "gpt-4",
       messages: messageToSend,
       functions: functions,
       function_call: "auto",
@@ -319,10 +319,10 @@ router.post("/", async function (req, res, next) {
         const function_name = message.function_call.name;
         console.log("function name: ", function_name);
 
-        if (executeFunctions[function_name]) {
-          console.log("EXECUTED BEFORE!!: ", function_name);
-          break;
-        }
+        // if (executeFunctions[function_name]) {
+        //   console.log("EXECUTED BEFORE!!: ", function_name);
+        //   break;
+        // }
 
         //Execute functions - depending on function name.
         let function_response = "";

@@ -636,13 +636,17 @@ const Home = () => {
     setIsPromptGenerating(true);
     try {
       const data = await askGPT(inputPrompt);
-
-      if (data) {
+      if (data.data) {
         setIsPromptGenerating(false);
         setOutputPrompt(data.data.response);
         toast.success("Generated!");
       }
-    } catch {}
+    } catch (e: any) {
+      if (e.response.status === 400) {
+        toast.error("An error has occured! Try again later.");
+        setIsPromptGenerating(false);
+      }
+    }
   };
 
   const deleteEmployee = async (
@@ -693,6 +697,7 @@ const Home = () => {
       const data = await getEmployees();
       if (data) {
         toast.success("Employee list refreshed!");
+        setEmployees(data.data);
       }
     } catch (e) {
       console.log(e);

@@ -379,9 +379,18 @@ router.post("/", async function (req, res, next) {
   };
 
   //Main body of the route, everything before is function and such
-  const data = req.body.message;
-  const gptFinalResponse = await promptGPT(data);
-  res.send({ response: gptFinalResponse.choices[0].message.content });
+  try {
+    const data = req.body.message;
+    const gptFinalResponse = await promptGPT(data);
+    res
+      .status(200)
+      .send({ response: gptFinalResponse.choices[0].message.content });
+  } catch (error) {
+    res.status(400).send({ response: "Error processing request" });
+  }
+  //const data = req.body.message;
+  //const gptFinalResponse = await promptGPT(data);
+  //res.send({ response: gptFinalResponse.choices[0].message.content });
 });
 
 module.exports = router;

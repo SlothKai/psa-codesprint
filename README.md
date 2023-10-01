@@ -16,6 +16,16 @@ How can data and AI empower HR teams to effectively manage change and build a fu
 
 HR-Gen2 is an AI-powered HR platform that streamlines operations and supports employee development via integrated generative language modeling and a content management system that provides single point of access to all employee records and data.
 
+## Main Functionalities
+
+1. Managing employee data 
+
+2. Personalised employee development insights and suggestions
+
+3. Evaluation of candidate suitability
+
+4. Provide intelligent response regarding company overview
+
 ## Target Audience
 
 - HR Department
@@ -58,14 +68,28 @@ HR-Gen2 is an AI-powered HR platform that streamlines operations and supports em
    npm run dev
    ```
 
-## Main Functionalities
+## User Interface
 
 1. Managing employee data
 
-   [![Employee Data Management][readme_images/employee_data.png]]
+![Screenshot 2023-10-01 at 9 08 25 PM](https://github.com/sandhiyasukumaran/psa-codesprint/assets/116448556/7122907f-d8a5-4815-b091-f4718aa4b551)
+
+![Screenshot 2023-10-01 at 10 30 11 PM](https://github.com/sandhiyasukumaran/psa-codesprint/assets/116448556/2a936e44-b715-460b-8b75-758d10be0aa8)
 
 2. Personalised employee development insights and suggestions
 
+![Screenshot 2023-10-01 at 9 47 22 PM](https://github.com/sandhiyasukumaran/psa-codesprint/assets/116448556/b3834f14-0612-46c6-a589-d086ef74df4c)
+
 3. Evaluation of candidate suitability
 
+![Screenshot 2023-10-01 at 9 50 23 PM](https://github.com/sandhiyasukumaran/psa-codesprint/assets/116448556/284772b5-fc5a-49cc-9b6f-cebeccb000d6)
+
 4. Provide intelligent response regarding company overview
+
+![Screenshot 2023-10-01 at 9 51 11 PM](https://github.com/sandhiyasukumaran/psa-codesprint/assets/116448556/f334e80c-898c-4f13-9ac0-c0a9e7f204f4)
+
+
+## Additional information
+Project Link: https://github.com/habzs/psa-codesprint.git
+
+Youtube Link:

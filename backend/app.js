@@ -18,7 +18,7 @@ var app = express();
 app.use(logger("dev"));
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "http://psa-codesprint.vercel.app",
   })
 );
 app.use(express.json());

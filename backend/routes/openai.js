@@ -91,11 +91,15 @@ router.post("/", async function (req, res, next) {
       const leavesLeft = employee_details.leavesLeft - daydiff;
 
       if (leavesLeft < 0) {
-        return JSON.stringify({ msg: `Not enough leaves. You need ${daydiff} but only have ${employee_details.leavesLeft}` });
+        return JSON.stringify({
+          msg: `Not enough leaves. You need ${daydiff} but only have ${employee_details.leavesLeft}`,
+        });
       } else {
         employee_details.leavesLeft = leavesLeft;
         await usersFunctions.update_details(employee_details);
-        return JSON.stringify({ msg: `Leave application is successful. ${employee_details.name} has ${employee_details.leavesLeft} leaves left.}`});
+        return JSON.stringify({
+          msg: `Leave application is successful. ${employee_details.name} has ${employee_details.leavesLeft} leaves left.}`,
+        });
       }
     } catch (error) {
       console.log("Error: " + error);
@@ -106,16 +110,16 @@ router.post("/", async function (req, res, next) {
   const delete_employee = async (employee) => {
     try {
       const status = await usersFunctions.delete_employee(employee);
-      if(status.success == "true"){
+      if (status.success == "true") {
         return JSON.stringify({ msg: `Employee ${employee} has been deleted` });
-      } else{
+      } else {
         return JSON.stringify({ msg: `Employee ${employee} not found` });
       }
     } catch (error) {
       console.log("Error: " + error);
       return JSON.stringify({ error: "Error deleting employee" });
     }
-  }
+  };
 
   //Declare functions for GPT
   const functions = [
@@ -200,7 +204,7 @@ router.post("/", async function (req, res, next) {
   const askGPT = async (messageToSend) => {
     let response = await openai.chat.completions.create({
       //gpt-3.5-turbo-0613
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages: messageToSend,
       functions: functions,
       function_call: "auto",
@@ -221,7 +225,6 @@ router.post("/", async function (req, res, next) {
     }
 
     try {
-
       let response = await askGPT(messageToSend);
       let executeFunctions = {};
 
@@ -237,7 +240,7 @@ router.post("/", async function (req, res, next) {
         }
 
         const function_name = message.function_call.name;
-        console.log("function name: ", function_name)
+        console.log("function name: ", function_name);
 
         if (executeFunctions[function_name]) {
           console.log("EXECUTED BEFORE!!: ", function_name);
@@ -263,9 +266,7 @@ router.post("/", async function (req, res, next) {
             break;
           case "delete_employee":
             const functionArgs3 = JSON.parse(message.function_call.arguments);
-            function_response = await delete_employee(
-              functionArgs3.employee
-            );
+            function_response = await delete_employee(functionArgs3.employee);
             break;
         }
 

@@ -281,7 +281,8 @@ router.post("/", async function (req, res, next) {
   const askGPT = async (messageToSend) => {
     let response = await openai.chat.completions.create({
       //gpt-3.5-turbo-0613
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
+      // model: "gpt-4",
       messages: messageToSend,
       functions: functions,
       function_call: "auto",
@@ -373,8 +374,8 @@ router.post("/", async function (req, res, next) {
 
       return response;
     } catch (e) {
-      return JSON.stringify({ error: "Error processing request" });
       console.log("unexpected error: ", e);
+      return JSON.stringify({ error: "Error processing request" });
     }
   };
 

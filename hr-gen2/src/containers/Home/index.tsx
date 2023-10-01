@@ -779,10 +779,10 @@ const Home = () => {
                     <div className="px-1 py-4 flex flex-row space-x-5">
                       <div className="flex flex-col">
                         <h3 className="text-small font-bold" {...titleProps}>
-                          Are you sure you'd want to delete?
+                          Are you sure you&apos;d want to delete?
                         </h3>
                         <div className="text-tiny">
-                          There's no undoing this!
+                          There&apos;s no undoing this!
                         </div>
                       </div>
                       <Button
@@ -809,12 +809,6 @@ const Home = () => {
   );
 
   let tabs = [
-    // {
-    //   id: "Dashboard",
-    //   label: "Dashboard",
-    //   content:
-    //     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-    // },
     {
       id: "employees",
       label: "Employees",
@@ -918,7 +912,7 @@ const Home = () => {
             }}
             isLoading={isPromptGenerating}
           >
-            Generate
+            Ask
           </Button>
         </div>
       ),

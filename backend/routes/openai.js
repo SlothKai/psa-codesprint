@@ -91,17 +91,31 @@ router.post("/", async function (req, res, next) {
       const leavesLeft = employee_details.leavesLeft - daydiff;
 
       if (leavesLeft < 0) {
-        return JSON.stringify({ msg: "Not enough leaves" });
+        return JSON.stringify({ msg: `Not enough leaves. You need ${daydiff} but only have ${employee_details.leavesLeft}` });
       } else {
         employee_details.leavesLeft = leavesLeft;
         await usersFunctions.update_details(employee_details);
-        return JSON.stringify({ msg: "Leave taken" });
+        return JSON.stringify({ msg: `Leave application is successful. ${employee_details.name} has ${employee_details.leavesLeft} leaves left.}`});
       }
     } catch (error) {
       console.log("Error: " + error);
       return JSON.stringify({ error: "Error processing leaves" });
     }
   };
+
+  const delete_employee = async (employee) => {
+    try {
+      const status = await usersFunctions.delete_employee(employee);
+      if(status.success == "true"){
+        return JSON.stringify({ msg: `Employee ${employee} has been deleted` });
+      } else{
+        return JSON.stringify({ msg: `Employee ${employee} not found` });
+      }
+    } catch (error) {
+      console.log("Error: " + error);
+      return JSON.stringify({ error: "Error deleting employee" });
+    }
+  }
 
   //Declare functions for GPT
   const functions = [
@@ -118,7 +132,7 @@ router.post("/", async function (req, res, next) {
         avatar: The employee's picture, you do not need to display this,
         email: The employee's company email address,
 
-        If the user is not found, return an error message.`,
+        If the employee is not found, return an error message.`,
       parameters: {
         type: "object",
         properties: {
@@ -156,6 +170,23 @@ router.post("/", async function (req, res, next) {
         required: ["employee", "start_date", "end_date"],
       },
     },
+    {
+      name: "delete_employee",
+      description: `Delete the employee from the database.
+
+        If the employee is not found, return an error message.`,
+      parameters: {
+        type: "object",
+        properties: {
+          employee: {
+            type: "string",
+            description:
+              "The attribute of the user, it can be the user's name or employee ID",
+          },
+        },
+        required: ["employee"],
+      },
+    },
   ];
 
   //Message object type
@@ -169,7 +200,7 @@ router.post("/", async function (req, res, next) {
   const askGPT = async (messageToSend) => {
     let response = await openai.chat.completions.create({
       //gpt-3.5-turbo-0613
-      model: "gpt-3.5-turbo-0613",
+      model: "gpt-4",
       messages: messageToSend,
       functions: functions,
       function_call: "auto",
@@ -181,8 +212,8 @@ router.post("/", async function (req, res, next) {
   const promptGPT = async (input) => {
     //Input Message
     let messageToSend = [
-      { role: "user", content: input },
       { role: "system", content: systemPrompt },
+      { role: "user", content: input },
     ];
 
     if (!input) {
@@ -190,8 +221,8 @@ router.post("/", async function (req, res, next) {
     }
 
     try {
-      let response = await askGPT(messageToSend);
 
+      let response = await askGPT(messageToSend);
       let executeFunctions = {};
 
       //While loop to execute functions - stacked in a queue
@@ -206,9 +237,11 @@ router.post("/", async function (req, res, next) {
         }
 
         const function_name = message.function_call.name;
+        console.log("function name: ", function_name)
 
         if (executeFunctions[function_name]) {
-          return;
+          console.log("EXECUTED BEFORE!!: ", function_name);
+          break;
         }
 
         //Execute functions - depending on function name.
@@ -227,6 +260,13 @@ router.post("/", async function (req, res, next) {
               functionArgs2.start_date,
               functionArgs2.end_date
             );
+            break;
+          case "delete_employee":
+            const functionArgs3 = JSON.parse(message.function_call.arguments);
+            function_response = await delete_employee(
+              functionArgs3.employee
+            );
+            break;
         }
 
         executeFunctions[function_name] = true;

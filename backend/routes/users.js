@@ -79,13 +79,20 @@ router.post("/update", async function (req, res, next) {
   }
 });
 
-router.post("/delete", async function (req, res, next) {
+const delete_employee = async (id) => {
   try {
-    const id = req.body.id;
     await User.doc(id).delete();
-    res.status(200).send({ msg: "Deleted User." });
+    return { success: true };
   } catch (error) {
-    console.error("Error deleting document:", error);
+    return { success: false };
+  }
+};
+
+router.post("/delete", async function (req, res, next) {
+  const status = await delete_employee(req.body.id);
+  if (status.success) {
+    res.status(200).send({ msg: "Deleted User." });
+  } else {
     res.status(500).send({ error: "Failed to delete document" });
   }
 });
@@ -94,4 +101,5 @@ module.exports = {
   router: router,
   getAllUsers: getAllUsers,
   update_details: update_details,
+  delete_employee: delete_employee,
 };

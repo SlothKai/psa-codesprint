@@ -75,20 +75,20 @@ router.post("/", async function (req, res, next) {
     return new Date(year, month, day);
   }
 
-  const take_leaves = async (employee, start_leave, end_leave) => {
+  const take_leaves = async (employee, start_date, end_date) => {
     try {
       //details come back as a string, need to parse back to json
       const details = await get_employee_details(employee);
       const employee_details = JSON.parse(details);
 
       //Get no. of days. bewteen today and tomorrow, diff is 1 day but taking 2 days off
-      const d1 = parseDate(start_leave);
-      const d2 = parseDate(end_leave);
+      const d1 = parseDate(start_date);
+      const d2 = parseDate(end_date);
       const timediff = Math.abs(d2.getTime() - d1.getTime());
       const diff = Math.ceil(timediff / (1000 * 3600 * 24));
       const daydiff = diff + 1;
 
-      const leavesLeft = parseInt(employee_details.leavesLeft) - daydiff;
+      const leavesLeft = employee_details.leavesLeft - daydiff;
 
       if (leavesLeft < 0) {
         return JSON.stringify({ msg: "Not enough leaves" });
@@ -139,13 +139,21 @@ router.post("/", async function (req, res, next) {
       parameters: {
         type: "object",
         properties: {
-          search_term: {
+          employee: {
             type: "string",
             description:
-              "The attribute of the user, it can be the user's name or employee ID, start and end date of leaves",
+              "The attribute of the user, it can be the user's name or employee ID",
+          },
+          start_date: {
+            type: "string",
+            description: "The start date of the leave",
+          },
+          end_date: {
+            type: "string",
+            description: "The end date of the leave",
           },
         },
-        required: ["employee_id", "start_date", "end_date"],
+        required: ["employee", "start_date", "end_date"],
       },
     },
   ];
@@ -234,7 +242,7 @@ router.post("/", async function (req, res, next) {
 
       return response;
     } catch (e) {
-      console.log("unexepected error: ", e);
+      console.log("unexpected error: ", e);
     }
   };
 

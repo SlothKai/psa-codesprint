@@ -4,16 +4,16 @@ import {
   Button,
   Card,
   CardBody,
-  Checkbox,
   Chip,
-  ChipProps,
   Input,
-  Link,
   Modal,
   ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   Tab,
   Table,
   TableBody,
@@ -33,7 +33,9 @@ import React, { useEffect, useState } from "react";
 import { Pencil } from "../../../public/icons/pencil.jsx";
 import { Trash } from "../../../public/icons/trash.jsx";
 import axios from "axios";
-import { Field, Form, Formik, FormikHelpers } from "formik";
+import { Field, Form, Formik, FormikHelpers, useFormik } from "formik";
+import * as yup from "yup";
+
 require("dotenv").config();
 
 const askGPT = async (message: string) => {
@@ -54,22 +56,92 @@ const getEmployees = async () => {
   return res;
 };
 
+const addEmployee = async (
+  employeeInfo: AddEmployeeValues,
+  fetchEmployees: () => void
+) => {
+  try {
+    const res = await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}users/add`,
+      {
+        name: employeeInfo.name,
+        email: employeeInfo.email,
+        department: employeeInfo.department,
+        role: employeeInfo.role,
+        skillset: employeeInfo.skillset,
+        leavesTotal: employeeInfo.leavesTotal,
+        avatar: employeeInfo.avatar,
+      }
+    );
+
+    if (res.status === 200) {
+      toast.success("Employee added!");
+      fetchEmployees();
+    }
+  } catch (e) {
+    toast.error("An error has occured!");
+    console.log(e);
+  }
+};
+
 interface AddEmployeeValues {
-  lastName: string;
+  name: string;
   email: string;
+  department: string;
+  role: string;
+  skillset: string;
+  leavesTotal: string;
+  avatar: string;
 }
 interface AddEmployeeModalProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  fetchEmployees?: () => void;
 }
 
 const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
   isOpen,
   onOpenChange,
+  fetchEmployees,
 }) => {
+  const validationSchema = yup.object({
+    name: yup.string().required("Name is required"),
+    email: yup
+      .string()
+      .email("Enter a valid email")
+      .required("Email is required"),
+    department: yup.string().required("Department is required"),
+    role: yup.string().required("Role is required"),
+    skillset: yup.string().required("Skillsets are required"),
+    leavesTotal: yup.string().required("Total leaves are required"),
+  });
+
+  const addEmployeesFormik = useFormik({
+    initialValues: {
+      name: "",
+      email: "",
+      department: "",
+      role: "",
+      skillset: "",
+      leavesTotal: "",
+      avatar: "",
+    },
+    validationSchema: validationSchema,
+    onSubmit: (values) => {
+      addEmployee(values, () => fetchEmployees?.());
+      onClose();
+    },
+  });
+
+  const onClose = () => {
+    addEmployeesFormik.resetForm();
+    onOpenChange?.(false);
+  };
+
   return (
     <Modal
       isOpen={isOpen}
+      onClose={onClose}
       onOpenChange={onOpenChange}
       placement="top-center"
       backdrop="blur"
@@ -80,46 +152,146 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
             <ModalHeader className="flex flex-col gap-1">
               Add new employee
             </ModalHeader>
-            <Formik
-              initialValues={{
-                lastName: "",
-                email: "asdasdas",
-              }}
-              onSubmit={(
-                values: AddEmployeeValues,
-                { setSubmitting }: FormikHelpers<AddEmployeeValues>
-              ) => {
-                setTimeout(() => {
-                  alert(JSON.stringify(values, null, 2));
-                  setSubmitting(false);
-                }, 500);
-              }}
+            <form
+              onSubmit={addEmployeesFormik.handleSubmit}
+              id="add-employee-form"
             >
-              <Form>
-                <ModalBody>
-                  <Input autoFocus label="Name" variant="bordered" />
-                  <Input
-                    label="Email"
-                    variant="bordered"
-                    name="email"
-                    type="email"
-                  />
-                  <Input label="Department" variant="bordered" />
-                  <Input label="Role" variant="bordered" />
-                  <Input label="Skillsets" variant="bordered" />
-                  <Input label="Total leaves" variant="bordered" />
-                  <Input label="Avatar Link" variant="bordered" />
-                </ModalBody>
-                <ModalFooter>
-                  <Button color="danger" variant="flat" onPress={onClose}>
-                    Close
-                  </Button>
-                  <Button color="secondary" variant="shadow" onPress={onClose}>
-                    Add
-                  </Button>
-                </ModalFooter>
-              </Form>
-            </Formik>
+              <ModalBody>
+                <Input
+                  autoFocus
+                  label="Name"
+                  variant="bordered"
+                  name="name"
+                  id="name"
+                  value={addEmployeesFormik.values.name}
+                  onChange={addEmployeesFormik.handleChange}
+                  onBlur={addEmployeesFormik.handleBlur}
+                  isInvalid={
+                    addEmployeesFormik.touched.name &&
+                    Boolean(addEmployeesFormik.errors.name)
+                  }
+                  errorMessage={
+                    addEmployeesFormik.touched.name &&
+                    addEmployeesFormik.errors.name
+                  }
+                  isRequired
+                ></Input>
+                <Input
+                  label="Email"
+                  variant="bordered"
+                  name="email"
+                  type="email"
+                  id="email"
+                  value={addEmployeesFormik.values.email}
+                  onChange={addEmployeesFormik.handleChange}
+                  onBlur={addEmployeesFormik.handleBlur}
+                  isInvalid={
+                    addEmployeesFormik.touched.email &&
+                    Boolean(addEmployeesFormik.errors.email)
+                  }
+                  errorMessage={
+                    addEmployeesFormik.touched.email &&
+                    addEmployeesFormik.errors.email
+                  }
+                  isRequired
+                />
+                <Input
+                  label="Department"
+                  variant="bordered"
+                  name="department"
+                  id="department"
+                  value={addEmployeesFormik.values.department}
+                  onChange={addEmployeesFormik.handleChange}
+                  onBlur={addEmployeesFormik.handleBlur}
+                  isInvalid={
+                    addEmployeesFormik.touched.department &&
+                    Boolean(addEmployeesFormik.errors.department)
+                  }
+                  errorMessage={
+                    addEmployeesFormik.touched.department &&
+                    addEmployeesFormik.errors.department
+                  }
+                  isRequired
+                />
+                <Input
+                  label="Role"
+                  variant="bordered"
+                  name="role"
+                  id="role"
+                  value={addEmployeesFormik.values.role}
+                  onChange={addEmployeesFormik.handleChange}
+                  onBlur={addEmployeesFormik.handleBlur}
+                  isInvalid={
+                    addEmployeesFormik.touched.role &&
+                    Boolean(addEmployeesFormik.errors.role)
+                  }
+                  errorMessage={
+                    addEmployeesFormik.touched.role &&
+                    addEmployeesFormik.errors.role
+                  }
+                  isRequired
+                />
+                <Input
+                  label="Skillsets"
+                  variant="bordered"
+                  name="skillset"
+                  id="skillset"
+                  value={addEmployeesFormik.values.skillset}
+                  onChange={addEmployeesFormik.handleChange}
+                  onBlur={addEmployeesFormik.handleBlur}
+                  isInvalid={
+                    addEmployeesFormik.touched.skillset &&
+                    Boolean(addEmployeesFormik.errors.skillset)
+                  }
+                  errorMessage={
+                    addEmployeesFormik.touched.skillset &&
+                    addEmployeesFormik.errors.skillset
+                  }
+                  isRequired
+                />
+                <Input
+                  label="Total leaves"
+                  variant="bordered"
+                  name="leavesTotal"
+                  id="leavesTotal"
+                  value={addEmployeesFormik.values.leavesTotal}
+                  onChange={addEmployeesFormik.handleChange}
+                  onBlur={addEmployeesFormik.handleBlur}
+                  isInvalid={
+                    addEmployeesFormik.touched.leavesTotal &&
+                    Boolean(addEmployeesFormik.errors.leavesTotal)
+                  }
+                  errorMessage={
+                    addEmployeesFormik.touched.leavesTotal &&
+                    addEmployeesFormik.errors.leavesTotal
+                  }
+                  isRequired
+                />
+                <Input
+                  label="Avatar Link"
+                  variant="bordered"
+                  name="avatarLink"
+                  id="avatarLink"
+                  value={addEmployeesFormik.values.avatar}
+                  onChange={addEmployeesFormik.handleChange}
+                  onBlur={addEmployeesFormik.handleBlur}
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  color="danger"
+                  variant="flat"
+                  onPress={() => {
+                    onClose();
+                  }}
+                >
+                  Close
+                </Button>
+                <Button color="secondary" variant="shadow" type="submit">
+                  Add
+                </Button>
+              </ModalFooter>
+            </form>
           </>
         )}
       </ModalContent>
@@ -132,6 +304,7 @@ const Home = () => {
   const [inputPrompt, setInputPrompt] = useState<string>("");
   const [outputPrompt, setOutputPrompt] = useState<string>("");
   const [employees, setEmployees] = useState<UserType[]>([]);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   const addEmployeeModalController = useDisclosure();
 
@@ -162,6 +335,30 @@ const Home = () => {
         toast.success("Generated!");
       }
     } catch {}
+  };
+
+  const deleteEmployee = async (
+    employeeId: number,
+    fetchEmployees: () => void
+  ) => {
+    setIsDeleting(true);
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}users/delete`,
+        {
+          id: employeeId,
+        }
+      );
+
+      if (res.status === 200) {
+        toast.success("Employee deleted!");
+        fetchEmployees();
+      }
+      setIsDeleting(false);
+    } catch (e) {
+      toast.error("An error has occured!");
+      console.log(e);
+    }
   };
 
   const fetchEmployees = async () => {
@@ -235,11 +432,38 @@ const Home = () => {
                   <Pencil />
                 </span>
               </Tooltip>
-              <Tooltip color="danger" content="Delete user">
-                <span className="text-lg text-danger cursor-pointer active:opacity-50">
-                  <Trash />
-                </span>
-              </Tooltip>
+              <Popover placement="bottom-end">
+                <PopoverTrigger>
+                  {/* <Button>Open Popover</Button> */}
+                  <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                    <Trash />
+                  </span>
+                </PopoverTrigger>
+                <PopoverContent>
+                  {(titleProps) => (
+                    <div className="px-1 py-4 flex flex-row space-x-5">
+                      <div className="flex flex-col">
+                        <h3 className="text-small font-bold" {...titleProps}>
+                          Are you sure you'd want to delete?
+                        </h3>
+                        <div className="text-tiny">
+                          There's no undoing this!
+                        </div>
+                      </div>
+                      <Button
+                        color="danger"
+                        variant="ghost"
+                        isLoading={isDeleting}
+                        onClick={() => {
+                          deleteEmployee(employees.id, fetchEmployees);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
             </div>
           );
         default:
@@ -302,6 +526,7 @@ const Home = () => {
           <AddEmployeeModal
             isOpen={addEmployeeModalController.isOpen}
             onOpenChange={addEmployeeModalController.onOpenChange}
+            fetchEmployees={fetchEmployees}
           />
         </>
       ),

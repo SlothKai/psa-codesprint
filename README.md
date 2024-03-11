@@ -1,9 +1,5 @@
 # HR-Gen2: Advanced HR Management System
 
-## Youtube Link
-
-https://youtu.be/okDZj4wT8M0
-
 ## About
 
 As part of the PSA Hackathon 2023, we have created a web application, HR-Gen2 which is an AI-powered HR platform that streamlines HR operations and supports employee development.
@@ -96,4 +92,4 @@ HR-Gen2 is an AI-powered HR platform that streamlines operations and supports em
 
 Project Link: https://github.com/habzs/psa-codesprint.git
 
-Youtube Link:
+Youtube Link: https://youtu.be/okDZj4wT8M0
